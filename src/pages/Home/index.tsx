@@ -22,7 +22,8 @@ interface CartItemsAmount {
 }
 
 const Home = (): JSX.Element => {
-  // const [products, setProducts] = useState<ProductFormatted[]>([]);
+
+  const [products, setProducts] = useState<ProductFormatted[]>([]);
   // const { addProduct, cart } = useCart();
 
   // const cartItemsAmount = cart.reduce((sumAmount, product) => {
@@ -31,6 +32,25 @@ const Home = (): JSX.Element => {
 
   useEffect(() => {
     async function loadProducts() {
+
+      const data: Product[] = await api.get('/products').then(response => response.data)
+
+      setProducts((
+        data.map(product => {
+          const formatted: ProductFormatted = {
+            ...product,
+            priceFormatted: new Intl.NumberFormat('pt-BR', {
+              style: 'currency',
+              currency: 'BRL'
+            }).format(product.price)
+          };
+          return formatted;
+        })
+      ))
+
+      console.log(products);
+
+
       // TODO
     }
 
