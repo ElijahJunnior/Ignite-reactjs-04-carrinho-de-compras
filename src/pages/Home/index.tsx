@@ -31,30 +31,35 @@ const Home = (): JSX.Element => {
   // }, {} as CartItemsAmount)
 
   useEffect(() => {
+
+    function numberFormater(price: number) {
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(price)
+    }
+
     async function loadProducts() {
 
+      // ----- Carrega a lista de produtos da api -------------------------------------------------
       const data: Product[] = await api.get('/products').then(response => response.data)
 
-      setProducts((
-        data.map(product => {
-          const formatted: ProductFormatted = {
-            ...product,
-            priceFormatted: new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL'
-            }).format(product.price)
-          };
-          return formatted;
-        })
-      ))
+      // ----- Cria uma nova lista de produtos adicionando o valor do produto formatado -----------
+      const loadedProducts = data.map(product => {
+        const formatted: ProductFormatted = {
+          ...product,
+          priceFormatted: numberFormater(product.price)
+        };
+        return formatted;
+      });
 
-      console.log(products);
+      // ----- Atualiza o estado de produtos com a lista carrega e tratada ------------------------
+      setProducts(loadedProducts);
 
-
-      // TODO
     }
 
     loadProducts();
+
   }, []);
 
   function handleAddProduct(id: number) {
@@ -63,23 +68,27 @@ const Home = (): JSX.Element => {
 
   return (
     <ProductList>
-      <li>
-        <img src="https://rocketseat-cdn.s3-sa-east-1.amazonaws.com/modulo-redux/tenis1.jpg" alt="Tênis de Caminhada Leve Confortável" />
-        <strong>Tênis de Caminhada Leve Confortável</strong>
-        <span>R$ 179,90</span>
-        <button
-          type="button"
-          data-testid="add-product-button"
-        // onClick={() => handleAddProduct(product.id)}
-        >
-          <div data-testid="cart-product-quantity">
-            <MdAddShoppingCart size={16} color="#FFF" />
-            {/* {cartItemsAmount[product.id] || 0} */} 2
-          </div>
+      {
+        products.map(product => (
+          <li key={product.id}>
+            <img src={product.image} alt={product.title} />
+            <strong>{product.title}</strong>
+            <span>{product.priceFormatted}</span>
+            <button
+              type="button"
+              data-testid="add-product-button"
+            // onClick={() => handleAddProduct(product.id)}
+            >
+              <div data-testid="cart-product-quantity">
+                <MdAddShoppingCart size={16} color="#FFF" />
+                {/* {cartItemsAmount[product.id] || 0} */} 2
+              </div>
 
-          <span>ADICIONAR AO CARRINHO</span>
-        </button>
-      </li>
+              <span>ADICIONAR AO CARRINHO</span>
+            </button>
+          </li>
+        ))
+      }
     </ProductList>
   );
 };
