@@ -60,7 +60,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
 
         }
 
-        cart.splice(productIndex, 1, productData);
+        cart.splice(productIndex, 1);
 
       } else {
 
@@ -73,11 +73,9 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
 
         }
 
-        cart.push(productData);
-
       }
 
-      setCart(cart);
+      setCart([...cart, productData]);
 
       localStorage.setItem('@RocketShoes:cart', JSON.stringify(cart));
 
