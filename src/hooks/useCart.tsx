@@ -1,3 +1,4 @@
+import { Console } from 'console';
 import { createContext, ReactNode, useContext, useState } from 'react';
 import { toast } from 'react-toastify';
 import { ThemeConsumer } from 'styled-components';
@@ -99,11 +100,43 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
     productId,
     amount,
   }: UpdateProductAmount) => {
+
     try {
-      // TODO
+
+      if (amount <= 0) {
+        return;
+      }
+
+      const productIndex = cart.findIndex(product => product.id === productId);
+
+      if (productIndex < 0) {
+        return;
+      }
+
+      const productActive: Product = {
+        ...cart[productIndex]
+      }
+
+      productActive.amount += amount;
+
+      const stock: Stock = await
+        api.get(`stock/${productActive.id}`).then(response => response.data);
+
+      if (productActive.amount > stock.amount) {
+        toast.error('Quantidade solicitada fora de estoque');
+        return;
+      };
+
+      cart.splice(productIndex, 1);
+
+      setCart([...cart, productActive]);
+
     } catch {
-      // TODO
+
+      toast.error('Erro na alteração de quantidade do produto');
+
     }
+
   };
 
   return (
