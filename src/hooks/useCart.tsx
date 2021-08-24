@@ -48,35 +48,32 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
       const stock: Stock = await
         api.get(`stock/${productId}`).then(response => response.data);
 
-      const productIndex = cart.findIndex(product => product.id === productId);
+      const cartUpdate = [...cart];
+
+      const productIndex = cartUpdate.findIndex(product => product.id === productId);
 
       if (productIndex >= 0) {
 
-        productData.amount = cart[productIndex].amount + 1;
+        productData.amount = cartUpdate[productIndex].amount + 1;
 
-        if (stock.amount < productData.amount) {
-
-          toast.error('Quantidade solicitada fora de estoque');
-          return;
-
-        }
-
-        cart.splice(productIndex, 1);
+        cartUpdate.splice(productIndex, 1, productData);
 
       } else {
 
         productData.amount = 1;
 
-        if (stock.amount < productData.amount) {
-
-          toast.error('Quantidade solicitada fora de estoque');
-          return;
-
-        }
+        cartUpdate.push(productData);
 
       }
 
-      setCart([...cart, productData]);
+      if (stock.amount < productData.amount) {
+
+        toast.error('Quantidade solicitada fora de estoque');
+        return;
+
+      }
+
+      setCart(cartUpdate);
 
       localStorage.setItem('@RocketShoes:cart', JSON.stringify(cart));
 
@@ -89,11 +86,29 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
   };
 
   const removeProduct = (productId: number) => {
+
     try {
-      // TODO
+
+      const productIndex = cart.findIndex(product => product.id === productId);
+
+      if (productIndex < 0) {
+        throw '';
+      }
+
+      const cartUpdate = [...cart];
+
+      cartUpdate.splice(productIndex, 1);
+
+      setCart(cartUpdate);
+
+      localStorage.setItem('@RocketShoes:cart', JSON.stringify(cart));
+
     } catch {
-      // TODO
+
+      toast.error('Erro na remoção do produto');
+
     }
+
   };
 
   const updateProductAmount = async ({
@@ -103,33 +118,48 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
 
     try {
 
-      if (amount <= 0) {
+      // ----- check if the quantity was informed ---------------------------------------
+      if (amount === 0) {
         return;
       }
 
-      const productIndex = cart.findIndex(product => product.id === productId);
+      // ----- copy CART State to use localy --------------------------------------------
+      const cartUpdate = [...cart];
 
+      // ----- get index of the refected PRODUCT in the properties ----------------------
+      const productIndex = cartUpdate.findIndex(product => product.id === productId);
+
+      // ----- verify if the product stay in CART ---------------------------------------
       if (productIndex < 0) {
-        return;
+        throw '';
       }
 
-      const productActive: Product = {
+      // ----- copy PRODUCT in CART to use localy ---------------------------------------
+      const productUpdate: Product = {
         ...cart[productIndex]
       }
 
-      productActive.amount += amount;
+      // ----- update product amount with quantity in the properties --------------------
+      productUpdate.amount += amount;
 
+      // ----- get product stock amount -------------------------------------------------
       const stock: Stock = await
-        api.get(`stock/${productActive.id}`).then(response => response.data);
+        api.get(`stock/${productId}`).then(response => response.data);
 
-      if (productActive.amount > stock.amount) {
+      // ----- verify if have the product quantity in stock -----------------------------
+      if (productUpdate.amount > stock.amount) {
         toast.error('Quantidade solicitada fora de estoque');
         return;
       };
 
-      cart.splice(productIndex, 1);
+      // ----- remove old product of cart and add new -----------------------------------
+      cartUpdate.splice(productIndex, 1, productUpdate);
 
-      setCart([...cart, productActive]);
+      // ----- updaste cart state -------------------------------------------------------
+      setCart(cartUpdate);
+
+      // ----- updaste cart in localStorage ---------------------------------------------
+      localStorage.setItem('@RocketShoes:cart', JSON.stringify(cart));
 
     } catch {
 
