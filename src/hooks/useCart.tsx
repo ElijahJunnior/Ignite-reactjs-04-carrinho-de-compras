@@ -75,7 +75,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
 
       setCart(cartUpdate);
 
-      localStorage.setItem('@RocketShoes:cart', JSON.stringify(cart));
+      localStorage.setItem('@RocketShoes:cart', JSON.stringify(cartUpdate));
 
     } catch {
 
@@ -101,7 +101,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
 
       setCart(cartUpdate);
 
-      localStorage.setItem('@RocketShoes:cart', JSON.stringify(cart));
+      localStorage.setItem('@RocketShoes:cart', JSON.stringify(cartUpdate));
 
     } catch {
 
@@ -123,6 +123,15 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
         return;
       }
 
+      // ----- get product stock amount -------------------------------------------------
+      const stock: Stock = await api.get(`stock/${productId}`).then(response => response.data);
+
+      // ----- verify if have the product quantity in stock -----------------------------
+      if (amount > stock.amount) {
+        toast.error('Quantidade solicitada fora de estoque');
+        return;
+      };
+
       // ----- copy CART State to use localy --------------------------------------------
       const cartUpdate = [...cart];
 
@@ -140,17 +149,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
       }
 
       // ----- update product amount with quantity in the properties --------------------
-      productUpdate.amount += amount;
-
-      // ----- get product stock amount -------------------------------------------------
-      const stock: Stock = await
-        api.get(`stock/${productId}`).then(response => response.data);
-
-      // ----- verify if have the product quantity in stock -----------------------------
-      if (productUpdate.amount > stock.amount) {
-        toast.error('Quantidade solicitada fora de estoque');
-        return;
-      };
+      productUpdate.amount = amount;
 
       // ----- remove old product of cart and add new -----------------------------------
       cartUpdate.splice(productIndex, 1, productUpdate);
@@ -159,7 +158,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
       setCart(cartUpdate);
 
       // ----- updaste cart in localStorage ---------------------------------------------
-      localStorage.setItem('@RocketShoes:cart', JSON.stringify(cart));
+      localStorage.setItem('@RocketShoes:cart', JSON.stringify(cartUpdate));
 
     } catch {
 

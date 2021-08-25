@@ -23,6 +23,10 @@ interface ProductFormated extends Product {
   subtotalFormatted: string;
 }
 
+interface CartItemsAmount {
+  [key: number]: number;
+}
+
 const Cart = (): JSX.Element => {
   const { cart, removeProduct, updateProductAmount } = useCart();
 
@@ -36,6 +40,11 @@ const Cart = (): JSX.Element => {
     return productFormated;
   })
 
+  // const cartItemsAmount = cart.reduce((amountItems, product) => {
+  //   amountItems[product.id] = product.amount;
+  //   return amountItems;
+  // }, {} as CartItemsAmount)
+
   const total =
     formatPrice(
       cartFormatted.reduce((sumTotal, product) => {
@@ -47,7 +56,7 @@ const Cart = (): JSX.Element => {
 
     updateProductAmount({
       productId: product.id,
-      amount: 1
+      amount: product.amount + 1
     });
 
   }
@@ -55,7 +64,7 @@ const Cart = (): JSX.Element => {
   function handleProductDecrement(product: Product) {
     updateProductAmount({
       productId: product.id,
-      amount: -1
+      amount: product.amount - 1
     });
   }
 
